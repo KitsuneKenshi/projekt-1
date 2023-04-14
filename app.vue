@@ -5,7 +5,7 @@
         <v-toolbar-title >App </v-toolbar-title>
       </nuxt-link>
       <v-spacer></v-spacer>
-      <v-btn to="/login" v-if="!firebaseUser.isLoggedIn" class="mr-2" text>Login</v-btn>
+      <v-btn to="/login" v-if="!firebaseUser.isLoggedIn" class="mr-2">Login</v-btn>
       <v-btn v-if="firebaseUser.isLoggedIn" @click="logout()">Log out</v-btn>
       <v-btn to="/panel" v-if="firebaseUser.isLoggedIn" >Panel </v-btn>
       <v-btn icon="mdi-theme-light-dark" @click="toggleTheme()"></v-btn>
@@ -38,6 +38,9 @@ const autoLogin = () => {
       if(user) {
         firebaseUser.user = user;
       }
+      if(!user && /\/panel.*/.test(location.pathname)) {
+            return navigateTo('/login')
+        }
     });
   }
 }

@@ -1,7 +1,7 @@
 <template>
-        <v-container v-if="firebaseUser.isLoggedIn">
-            <panel-list/>
-        </v-container>
+    <v-container v-if="firebaseUser.isLoggedIn">
+        <edit-form />
+    </v-container>
 </template>
 
 <script setup lang="ts">

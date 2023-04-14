@@ -9,3 +9,29 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model form {
+  id String @db.VarChar(21) @id
+  authorId String
+  name String @db.VarChar(255)
+  description String @db.VarChar(255)
+  image String @db.VarChar(1024)
+  fields formField[]
+  responses formResponse[]
+}
+
+model formField {
+  id String @db.VarChar(21) @id
+  question String @db.VarChar(255)
+  answers Json[]
+  type String @db.VarChar(255)
+  form form @relation(fields: [formId], references: [id])
+  formId String
+}
+
+model formResponse {
+  id String @db.VarChar(21) @id
+  form form @relation(fields: [formId], references: [id])
+  formId String
+  responses Json[]
+}

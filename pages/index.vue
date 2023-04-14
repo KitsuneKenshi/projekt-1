@@ -11,7 +11,7 @@
                 <v-card-text>
                     <v-row>
                         <v-col cols="12" sm="6" class="mb-4">
-                            <v-img src="https://picsum.photos/2137/2137?random=1" aspect-ratio="1" class="image"></v-img>
+                            <v-img src="https://picsum.photos/200/200?random=1" aspect-ratio="1" class="image"></v-img>
                         </v-col>
                         <v-col cols="12" sm="6" class="mb-4">
                             <v-card class="description-card">
@@ -27,7 +27,7 @@
                 <v-card-text>
                     <v-row>
                         <v-col cols="12" sm="6" class="mb-4">
-                            <v-img src="https://picsum.photos/2137/2137?random=2" aspect-ratio="1" class="image"></v-img>
+                            <v-img src="https://picsum.photos/200/200?random=2" aspect-ratio="1" class="image"></v-img>
                         </v-col>
                         <v-col cols="12" sm="6" class="mb-4">
                             <v-card class="description-card">
