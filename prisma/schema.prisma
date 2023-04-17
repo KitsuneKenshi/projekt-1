@@ -18,6 +18,8 @@ model form {
   image String @db.VarChar(1024)
   fields formField[]
   responses formResponse[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 }
 
 model formField {
@@ -25,7 +27,7 @@ model formField {
   question String @db.VarChar(255)
   answers Json[]
   type String @db.VarChar(255)
-  form form @relation(fields: [formId], references: [id])
+  form form @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId String
 }
 

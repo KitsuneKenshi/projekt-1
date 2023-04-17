@@ -2,7 +2,7 @@
     <v-card>
         <v-card-text>
             <v-form>
-                <v-text-field label="Name" v-model="form.title" />
+                <v-text-field label="Name" v-model="form.name" />
                 <v-text-field label="Description" v-model="form.description" />
                 <v-text-field label="Image" v-model="form.image" />
                 <v-btn color="primary" @click="addQuestion">Add question</v-btn>
@@ -30,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+import FormResponse from '~/Types/formResponse';
 import {useFirebaseUser} from '~/stores/firebase';
 
 const route = useRoute();
@@ -37,17 +38,18 @@ const mode = ref(route.params.id ? 'edit' : 'create');
 
 const form: globalThis.Ref<
     {
-        title: string,
+        name: string,
         description: string,
         image: string,
         fields: {
             question: string,
             type: string,
-            answers: string[]
+            answers: string[],
+            id?: string
         }[]
     }> = ref(
         {
-            title: '',
+            name: '',
             description: '',
             image: '',
             fields: []
@@ -69,11 +71,11 @@ const removeAnswer = (index: number, index2: number) => {
 const removeQuestion = (index: number) => {
     form.value.fields.splice(index, 1)
 }
+const firebaseUser = useFirebaseUser();
 const submit = () => {
-    const firebaseUser = useFirebaseUser();
     if (mode.value == 'create') {    
         firebaseUser.user?.getIdToken().then(idToken => {
-            useFetch('/api/forms/add', {
+            useFetch('/api/forms/author/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -81,44 +83,48 @@ const submit = () => {
                 },
                 body: JSON.stringify(form.value)
             }).then((response) => {
-                if (response.ok) {
+                if (response.data.value) {
                     navigateTo('/panel')
                 }
             })
         }).catch(err => {
             console.log(err)
         })
-        if (mode.value == 'edit') {
-            const formId = ref(route.params.id);
-            useFetch('/api/forms/' + formId.value, {
+    }
+    if (mode.value == 'edit') {
+        const formId = ref(route.params.id);
+        firebaseUser.user?.getIdToken().then(idToken => {
+            useFetch('/api/forms/author/' + formId.value, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'authorization': idToken
                 },
                 body: JSON.stringify(form.value)
             }).then((response) => {
-                if (response.ok) {
-                    response.json().then((data: any) => {
-                        navigateTo('/panel')
-                    })
+                if (response.data.value) {
+                    navigateTo('/panel')
                 }
             })
-        }
+        }).catch(err => {
+            console.log(err)
+        })
     }
 }
 if (mode.value == 'edit') {
     const formId = ref(route.params.id);
-    useFetch('/api/forms/' + formId.value, {
+    firebaseUser.user?.getIdToken().then(async (idToken) => {
+    useFetch<FormResponse>('/api/forms/author/' + formId.value, {
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'authorization': idToken
         }
     }).then((response) => {
-        if (response.ok) {
-            response.json().then((data: any) => {
-                form.value = data;
-            })
+        if (response.data.value && response.data.value.data) {
+            form.value = response.data.value.data
         }
+    })
     })
 }
 </script>

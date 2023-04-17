@@ -1,6 +1,6 @@
-import verifyToken from "../func/verifyToken";
 import prisma from "~/server/utlis/database";
-import {nanoid} from "nanoid";
+import verifyToken from "~/server/func/verifyToken";
+import mergeFields from "~/server/func/mergeFields";
 export default defineEventHandler(async (event) => {
   const headers = event.node.req.headers;
   const { authorization } = headers;
@@ -11,7 +11,6 @@ export default defineEventHandler(async (event) => {
     });
   try {
     const user = await verifyToken(authorization);
-    console.log(user);
     if (!user)
       throw createError({
         statusCode: 401,
@@ -24,12 +23,12 @@ export default defineEventHandler(async (event) => {
         statusMessage: "Bad Request",
       });
     });
-    const { title, description, fields } = body;
+    const { name, description, fields } = body;
     if (
-      !title ||
+      !name ||
       !description ||
       !fields ||
-      typeof title !== "string" ||
+      typeof name !== "string" ||
       typeof description !== "string" ||
       !Array.isArray(fields)
     )
@@ -52,43 +51,50 @@ export default defineEventHandler(async (event) => {
         statusCode: 400,
         statusMessage: "Bad Request",
       });
-    const id = nanoid();
-    const readyFields = fields.map((field: any) => {
-      return {
-        id: nanoid(),
-        question: field.question,
-        type: field.type,
-        answers: field.answers,
-        formId: id,
-      };
+    const id = event.context.params?.id;
+    const form = await prisma.form.findFirst({
+      where: {
+        AND: [
+          {
+            id: id,
+          },
+          {
+            authorId: user.id,
+          },
+        ]
+      },
+      include: {
+        fields: true,
+      },
     });
-
-    const form = await prisma.form.create({
+    if (!form)
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+      });
+    await mergeFields(fields);
+    const data = await prisma.form.update({
+      where: {
+        id: id,
+      },
       data: {
-        id,
-        title,
+        name,
         description,
-        authorId: user.uid,
-        image: "https://picsum.photos/200/200?random=1",
-        fields: {
-          create: readyFields,
-        },
+      },
+      include: {
+        fields: true,
       },
     });
     return {
       statusCode: 200,
       statusMessage: "OK",
-      id: form.id,
+      data,
     };
   } catch (e) {
     console.log(e);
     throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized",
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
     });
   }
 });
-
-function nanoid(): any {
-  throw new Error("Function not implemented.");
-}
