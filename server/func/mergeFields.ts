@@ -1,5 +1,5 @@
 import prisma from "~/server/utlis/database";
-
+import { nanoid } from "nanoid";
 export default async (
   fields: {
     id: string;
@@ -49,7 +49,15 @@ export default async (
       },
     });
     const created = await prisma.formField.createMany({
-      data: toCreate,
+      data: toCreate.map((field) => {
+        return {
+          id: nanoid(),
+          question: field.question,
+          answers: field.answers,
+          type: field.type,
+          formId: fields[0].formId,
+          };
+          }),
     });
     const updatedFields = await prisma.$transaction(
       updated.map((field) => {

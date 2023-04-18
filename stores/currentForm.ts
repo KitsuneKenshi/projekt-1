@@ -17,7 +17,7 @@ export const useForm = defineStore('currentForm', {
         answers: [] as {
             index: number,
             question: string,
-            answer: string,
+            answer: string | string[],
             id?: string
         }[]
     }),
@@ -31,16 +31,21 @@ export const useForm = defineStore('currentForm', {
         },
         getQuestion (index: number) {
             if(!this.form) return null;
-            return this.form.fields[index];
+            this.currentQuestion = index;
+            return this.form.fields[index - 1];
         },
         getNextQuestion () {
             if(!this.form) return null;
             if(this.currentQuestion === null) return null;
-            return this.form.fields[this.currentQuestion + 1];
+            if(this.currentQuestion === this.form.fields.length) return null;
+            this.currentQuestion += 1;
+            return this.form.fields[this.currentQuestion - 1];
         },
         getPrevQuestion () {
             if(!this.form) return null;
             if(this.currentQuestion === null) return null;
+            if(this.currentQuestion === 1) return null;
+            this.currentQuestion -= 1;
             return this.form.fields[this.currentQuestion - 1];
         },
         setForm (form: {
@@ -56,21 +61,22 @@ export const useForm = defineStore('currentForm', {
                 }) {
             this.form = form;
         },
-        pushAnswer (answer: {
-            question: string,
-            answer: string,
-            index: number,
-            id?: string
-        }) {
-            this.answers.push(answer);
-        },
         setAnswer (answer: {
             question: string,
-            answer: string,
+            answer: string | string[],
             index: number,
             id?: string
         }) {
-            this.answers[answer.index] = answer;
+            const index = this.answers.findIndex((a) => a.index === answer.index);
+            if(index === -1) return this.answers.push(answer);
+            this.answers[index] = answer;
+            return;
+        },
+        getAnswer (index: number) {
+            return this.answers.find((answer) => answer.index === index);
+        },
+        setCurrentQuestion (index: number) {
+            this.currentQuestion = index;
         }
     }
 })

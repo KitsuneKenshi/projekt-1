@@ -1,15 +1,20 @@
 <template>
     <div>
-        <v-card :loading="loading">
+        <clientOnly>
+        <v-card :loading="loading" v-if="form">
+            <v-card-title>
+                {{ form.name }}
+            </v-card-title>
             <v-card-text>
-                    <v-form>
-                        <v-text-field label="Imię" v-model="dataObj.name"></v-text-field>
-                        <v-text-field label="Nazwisko" v-model="dataObj.secondname"></v-text-field>
-                        <v-text-field label="Email" v-model="dataObj.email"></v-text-field>
-                        <v-btn @click="submit()">Przejdź do Formularza</v-btn>
+                    <v-form v-model="formData">
+                        <v-text-field :rules="nameRule" :counter="15" label="Imię" v-model="dataObj.name"></v-text-field>
+                        <v-text-field :rules="nameRule" label="Nazwisko" v-model="dataObj.secondname"></v-text-field>
+                        <v-text-field :rules="emailRules" label="Email" v-model="dataObj.email"></v-text-field>
+                        <v-btn :disabled="!formData" block type="submit" @click.prevent="submit()">Przejdź do Formularza</v-btn>
                     </v-form>
             </v-card-text>
         </v-card>
+    </clientOnly>
     </div>
 </template>
 
@@ -19,6 +24,15 @@ import { useForm } from '~/stores/currentForm';
 const route = useRoute();
 const loading = ref(true);
 const id = ref(route.params.id);
+const formData = ref();
+const form = ref<{
+    id: string,
+    name: string,
+    description: string,
+    image: string,
+    createdAt: string,
+    updatedAt: string
+} | null>(null);
 if(!id) navigateTo('/');
 const formStore = useForm();
 const answers = ref<{
@@ -30,7 +44,7 @@ const answers = ref<{
         }>({
             index: 0,
             question: 'FirstPageQuestion',
-            type: 'custom',
+            type: 'firstPage',
             answer: ""
         });
 const dataObj = ref({
@@ -38,18 +52,27 @@ const dataObj = ref({
     secondname: '',
     email: ''
 })
+const nameRule = ref([
+    (v: string) => !!v || 'Imię jest wymagane',
+    (v: string) => (v && v.length <= 15) || 'Imię nie może być dłuższe niż 15 znaków',
+])
+const emailRules = ref([
+    (v: string) => !!v || 'Email jest wymagany',
+    (v: string) => /.+@.+\..+/.test(v) || 'Email musi być prawidłowy',
+])
 const load = async () => {
     const { data } = await useFetch<FormResponse>(`/api/forms/${id.value}`);
     if (!data.value) return;
-    formStore.setForm(data.value.data.form);
+    formStore.setForm(data.value.data);
+    form.value = data.value.data;
     loading.value = false;
 }
 load();
-const submit = () => {
+const submit = async () => {
     if(answers.value) {
         answers.value.answer = JSON.stringify(dataObj.value);
         formStore.setAnswer(answers.value!);
-        navigateTo(`/forms/${id.value}/questions`);
+        navigateTo(`/form/${id.value}/questions`);
     }
 }
 </script>
