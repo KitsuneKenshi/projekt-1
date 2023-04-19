@@ -5,13 +5,17 @@
         </v-card-title>
         <v-btn block to="/panel/edit" color="primary">Dodaj Ankietę <v-icon right>mdi-database-plus</v-icon></v-btn>
         <v-card-text>
-            <v-data-table v-model:headers="headers" :items="forms" :items-length="totalItems"
-                :items-per-page="itemsPrepage">
+            <v-data-table-server v-model:headers="headers"
+            :items-length="totalItems"
+            :items="forms"
+            :items-per-page="itemsPerPage"
+            :loading="loading"
+            @update:options="loadData">
                 <template #item.actions="{ item }">
                     <div class="d-flex">
                         <v-btn class="mr-1" size="x-small" :to="'/panel/edit/' + item.value" color="primary" icon><v-icon
                                 right>mdi-pencil</v-icon></v-btn>
-                        <v-btn size="x-small" @click="" color="error" icon><v-icon right>mdi-delete</v-icon>
+                        <v-btn class="mr-1" size="x-small" @click="" color="error" icon><v-icon right>mdi-delete</v-icon>
                             <v-dialog v-model="dialog" activator="parent" width="auto">
                                 <v-card>
                                     <v-card-text>
@@ -23,9 +27,10 @@
                                 </v-card>
                             </v-dialog>
                         </v-btn>
+                        <v-btn icon size="x-small" :to="'/panel/answers/' + item.value" color="green"><v-icon>mdi-database-eye</v-icon></v-btn>
                     </div>
                 </template>
-            </v-data-table>
+            </v-data-table-server>
         </v-card-text>
     </div>
 </template>
@@ -33,9 +38,9 @@
 <script setup lang="ts">
 import FormResponse from '~/Types/formResponse';
 import { useFirebaseUser } from '~/stores/firebase';
-
+const loading = ref(false);
 const dialog = ref(false);
-const itemsPrepage = ref(10)
+const itemsPerPage = ref(10)
 const totalItems = ref(0);
 const forms = ref<{
     id: string,
@@ -69,7 +74,8 @@ const headers = ref([
     }
 ])
 const firebaseUser = useFirebaseUser();
-const loadData = async (page = 1, itemsPrepage = 10) => {
+const loadData = async ({page, itemsPerPage}: {page: number, itemsPerPage: number}) => {
+    loading.value = true;
     firebaseUser.user?.getIdToken().then(async (idToken) => {
     const { data } = await useFetch<FormResponse>('/api/forms/author', {
         method: 'GET',
@@ -78,17 +84,17 @@ const loadData = async (page = 1, itemsPrepage = 10) => {
             'authorization': idToken
         },
         params: {
-            offset: (page - 1) * itemsPrepage,
-            limit: itemsPrepage
+            offset: (page - 1) * itemsPerPage,
+            limit: itemsPerPage
         }
     });
     
     if (!data.value) return;
-    forms.value = data.value.data.forms;
     totalItems.value = data.value.data.count;
+    forms.value = data.value.data.forms;
+    loading.value = false;
 })
 }
-loadData();
 const deleteForm = async (id: string) => {
     firebaseUser.user?.getIdToken().then(async (idToken) => {
     const {data, error} =  await useFetch('/api/forms/author/' + id, {
@@ -99,7 +105,7 @@ const deleteForm = async (id: string) => {
         }
     })
     if (error.value) return;
-    else loadData();
+    else loadData({page: 1, itemsPerPage: 10});
     dialog.value = false;
     })
 }

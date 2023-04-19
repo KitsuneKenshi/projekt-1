@@ -4,7 +4,7 @@
             class="mx-auto"
             max-width="1000"
         >
-        <v-container fluid>
+        <v-container>
             <v-row>
                 <v-col
                     v-for="form in forms"
@@ -34,6 +34,8 @@
                     </v-card>
                 </v-col>
             </v-row>
+            <div v-intersect="onscroll"></div>
+            <div class="d-flex justify-center" v-if="loading"></div>
         </v-container>
         </v-card>
     </div>
@@ -42,6 +44,7 @@
 <script setup lang="ts">
 import FormResponse from '~/Types/formResponse';
 
+const loading = ref(false);
 const forms = ref<{
     id: string,
     name: string,
@@ -50,10 +53,23 @@ const forms = ref<{
     createdAt: string,
     updatedAt: string
 }[]>([]);
+const formCount = ref(0);
 const load = async () => {
     const { data } = await useFetch<FormResponse>('/api/forms');
     if (!data.value) return;
     forms.value = data.value.data.forms;
+    formCount.value = data.value.data.count;
+}
+const onscroll = async () => {
+    if(forms.value.length >= formCount.value) return;
+    const { data } = await useFetch<FormResponse>('/api/forms', {
+        method: 'GET',
+        params: {
+            offset: forms.value.length
+        }
+    });
+    if (!data.value) return;
+    forms.value.push(...data.value.data.forms);
 }
 load();
 </script>

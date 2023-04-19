@@ -6,11 +6,12 @@ export const useForm = defineStore('currentForm', {
             name: string,
             description: string,
             image: string,
+            id: string,
             fields: {
                 question: string,
                 type: string,
                 answers: string[],
-                id?: string
+                id: string
             }[]
         } | null,
         currentQuestion: 0 as number | null,
@@ -52,11 +53,12 @@ export const useForm = defineStore('currentForm', {
             name: string,
             description: string,
             image: string,
+            id: string,
             fields: {
                 question: string,
                 type: string,
                 answers: string[],
-                id?: string
+                id: string
                 }[]
                 }) {
             this.form = form;
@@ -77,7 +79,12 @@ export const useForm = defineStore('currentForm', {
         },
         setCurrentQuestion (index: number) {
             this.currentQuestion = index;
-        }
+        },
+        reset () {
+            this.form = null;
+            this.currentQuestion = null;
+            this.answers = [];
+        },
     }
 })
     

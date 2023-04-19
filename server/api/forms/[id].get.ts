@@ -2,6 +2,11 @@ import prisma from "~/server/utlis/database";
 export default defineEventHandler(async (event) => {
   const id = event.context.params?.id;
   try {
+    if (!id)
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+      });
     const data = await prisma.form.findUnique({
       where: {
         id: id,
@@ -15,8 +20,14 @@ export default defineEventHandler(async (event) => {
       statusMessage: "OK",
       data,
     };
-  } catch (e) {
+  } catch (e: any) {
     console.log(e);
+    if (e.statusCode === 400) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+      });
+    }
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",

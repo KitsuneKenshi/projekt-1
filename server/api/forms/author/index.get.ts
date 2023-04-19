@@ -1,8 +1,7 @@
 import prisma from "~/server/utlis/database";
 import verifyToken from "~/server/func/verifyToken";
 export default defineEventHandler(async (event) => {
-  const headers = event.node.req.headers;
-  const { authorization } = headers;
+  const { authorization } = event.node.req.headers;
   if (!authorization)
     throw createError({
       statusCode: 401,
@@ -34,7 +33,14 @@ export default defineEventHandler(async (event) => {
         count,
       },
     };
-  } catch (e) {
+  } catch (e: any) {
+    if (e.statusCode === 401) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+      });
+    }
+    console.log(e);
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",

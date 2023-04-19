@@ -1,5 +1,5 @@
 import { createVuetify } from 'vuetify'
-import { VDataTable } from 'vuetify/labs/VDataTable'
+import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import 'vuetify/styles' // pre-build css styles
 import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
 export default defineNuxtPlugin((nuxtApp) => {
@@ -26,7 +26,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
     },
     components: {
-      VDataTable
+      VDataTableServer
     },
     defaults: {
       VDataTable: {

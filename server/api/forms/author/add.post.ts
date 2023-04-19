@@ -2,8 +2,7 @@ import verifyToken from "~/server/func/verifyToken";
 import prisma from "~/server/utlis/database";
 import {nanoid} from "nanoid";
 export default defineEventHandler(async (event) => {
-  const headers = event.node.req.headers;
-  const { authorization } = headers;
+  const { authorization } = event.node.req.headers;
   if (!authorization)
     throw createError({
       statusCode: 401,
@@ -37,6 +36,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: "Bad Request",
       });
     const valid = fields.every((field: any) => {
+      if(field.answers.length < 2 && (field.type === 'single' || field.type === 'multi')) return false;
       return (
         field.question &&
         field.type &&
@@ -78,11 +78,22 @@ export default defineEventHandler(async (event) => {
       statusMessage: "OK",
       data: form.id,
     };
-  } catch (e) {
+  } catch (e: any) {
     console.log(e);
+    if(e.statusCode === 401) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+      });
+    } else if (e.statusCode === 400) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+      });
+    }
     throw createError({
-      statusCode: 401,
-      statusMessage: "Unauthorized",
+      statusCode: 500,
+      statusMessage: "Internal Server Error",
     });
   }
 });

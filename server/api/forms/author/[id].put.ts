@@ -2,8 +2,7 @@ import prisma from "~/server/utlis/database";
 import verifyToken from "~/server/func/verifyToken";
 import mergeFields from "~/server/func/mergeFields";
 export default defineEventHandler(async (event) => {
-  const headers = event.node.req.headers;
-  const { authorization } = headers;
+  const { authorization } = event.node.req.headers;
   if (!authorization)
     throw createError({
       statusCode: 401,
@@ -90,8 +89,26 @@ export default defineEventHandler(async (event) => {
       statusMessage: "OK",
       data,
     };
-  } catch (e) {
+  } catch (e: any) {
     console.log(e);
+    if (e.statusCode === 400) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Bad Request",
+      });
+    }
+    if (e.statusCode === 401) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+      });
+    }
+    if (e.statusCode === 404) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found",
+      });
+    }
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error",

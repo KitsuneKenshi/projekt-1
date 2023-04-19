@@ -45,7 +45,8 @@ const answers = ref<{
             index: 0,
             question: 'FirstPageQuestion',
             type: 'firstPage',
-            answer: ""
+            answer: "",
+            id: "none"
         });
 const dataObj = ref({
     name: '',
@@ -61,6 +62,7 @@ const emailRules = ref([
     (v: string) => /.+@.+\..+/.test(v) || 'Email musi być prawidłowy',
 ])
 const load = async () => {
+    formStore.reset();
     const { data } = await useFetch<FormResponse>(`/api/forms/${id.value}`);
     if (!data.value) return;
     formStore.setForm(data.value.data);
