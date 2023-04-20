@@ -65,7 +65,8 @@ const onscroll = async () => {
     const { data } = await useFetch<FormResponse>('/api/forms', {
         method: 'GET',
         params: {
-            offset: forms.value.length
+            offset: forms.value.length,
+            limit: 10
         }
     });
     if (!data.value) return;

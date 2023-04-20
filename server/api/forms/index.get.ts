@@ -6,6 +6,9 @@ export default defineEventHandler(async (event) => {
     const forms = await prisma.form.findMany({
         take: isNaN(limit)? 10 : Number(limit),
         skip: isNaN(offset)? 0 : Number(offset),
+        orderBy: {
+            createdAt: 'desc'
+        }
     })
     const count = await prisma.form.count()
     return {

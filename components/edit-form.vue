@@ -80,22 +80,17 @@ watch(() => form.value.fields, (newForm) => {
                 break;
             }
             if (field.type == 'single' || field.type == 'multi') {
-                if (field.answers.length == 0) {
+                if (field.answers.length < 2) {
                     disable.value = true
                     break;
                 }
-                for(const answer of field.answers) {
-                    if (answer == '') {
-                        disable.value = true
-                        break;
-                    }
-                }
             }
+            disable.value = false
         }
     } else {
         disable.value = true
     }
-})
+}, {deep: true})
 const addAnswer = (index: number) => {
     form.value.fields[index].answers.push('')
 }
